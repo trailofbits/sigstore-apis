@@ -13,7 +13,8 @@ info() {
     echo "[-] $@"
 }
 
-# Use schematools to dereference schema: Progenitor can't handle references.
+# Use schematools to dereference schema: Progenitor can't handle external
+# references.
 install_schematools() {
     info "\`cargo install\` for schema-tools ..."
 
@@ -26,9 +27,14 @@ install_schematools() {
 
 # Bend the schema to our steadfast, unwavering will.
 transform_schema() {
-    "$SCHEMATOOLS" process dereference --skip-root-internal-references "$1" | # tee /dev/stderr |
-    jq \
-    '# Recursively iterate over all objects in the file.
+    cat $1 | if ! echo $1 | grep -iq "json$"; then
+    perl -MJSON -M"YAML::PP" -e "print encode_json(YAML::PP::LoadFile('/dev/stdin'))" ; else cat; fi |
+    jq -S \
+    '
+    .definitions += ([
+        .. | try(."$ref" | select(test("json$"))) | {"$ref": .}
+    ] | with_entries(.key = (.key | tostring) + "_tmp")) |
+    # Recursively iterate over all objects in the file.
     walk(if type == "object" then
         with_entries(
             # Convert 200 to 2XX to work around response type issues.
@@ -70,10 +76,43 @@ download_spec() {
     git clone --depth 1 -b "$3" "$2" "$1" 2>/dev/null
     pushd "$1" >/dev/null
 
-    # XX: This ordering is important! The Swagger Converter service can't handle
+    # XX: This ordering is important! The swagger converter service can't handle
     # the raw schema since it contains references.
-    transform_schema "$4" |
+    transform_schema "$4" > "work.json"
+    cp "work.json" ~/Documents/sw/sigstore-apis/
+
+    # XX: This technically shouldn't work: schema-tools is designed for OpenAPI 3.0.
+    # It happens to work for the current version of the schemas.
+    "$SCHEMATOOLS" process dereference --skip-root-internal-references --create-internal-references "work.json" |
+        "$SCHEMATOOLS" process merge-all-of --leave-invalid-properties /dev/stdin --to-file "work.json"
+
+    # The conversion service screws our definitions up, so save them first.
+    defs=$(cat "work.json" |
+               jq -c '[(.definitions | to_entries[] | select(.key | test("_tmp")))] // []')
+
+    cat "work.json" |
         convert_openapi |
+        # Assign the external reference types sane names here. We were unable to do so before
+        # the dereferencing step (the data we needed was not directly in the schema file),
+        # so we might as well do it here.
+        jq '
+        def camelident: [splits(" ") | sub("[^A-Za-z0-9]"; "", "g")] | join(""); '"$defs as \$defs |"'
+        # construct a mapping of temporary name -> new name; derive the new name from the title
+        ([$defs[] | {"\(.key)": (.value.title | camelident)}] | add) as $renames |
+
+        # remove the incorrect converted schema entry
+        del(try(.components.schemas[$renames | keys[]])) |
+
+        # add our saved definitions under the new names
+        .components.schemas += ([$defs[] | {"key": $renames[.key], "value": .value}] | from_entries) |
+
+        # fixup references
+        (.. | ."$ref"? | select(type == "string")) |=
+        if endswith("_tmp") then
+            "#/components/schemas/\($renames[sub(".*(?<a>[0-9]+_tmp)$"; "\(.a)")])"
+        else
+            .
+        end' |
         tee "$(dirs -l +2)/$service.openapi.json" |
         openssl dgst -sha256 -binary |
         xxd -p -c 32

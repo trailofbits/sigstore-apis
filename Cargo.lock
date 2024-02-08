@@ -988,7 +988,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sigstore-apis"
+name = "sigstore_apis"
 version = "0.1.0"
 dependencies = [
  "futures",
