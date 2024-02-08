@@ -1,0 +1,8 @@
+*
+!.gitignore
+!README.md
+
+!Makefile
+!update.sh
+!versions
+!*.openapi.json

@@ -1,0 +1,11 @@
+FULCIO_REF=v1.4.3
+REKOR_REF=v1.3.5
+
+FULCIO_REPO="https://github.com/sigstore/fulcio.git"
+REKOR_REPO="https://github.com/sigstore/rekor.git"
+
+FULCIO_PATH="fulcio.swagger.json"
+REKOR_PATH="openapi.yaml"
+
+FULCIO_HASH=8f5b2a0655bf2f6bb2c87179ab3423f29ddc06530c204d19823be20d276ef745
+REKOR_HASH=695adfa069e7fb15baca78a8d80978c1b78665d84b86253a6760813b0385cd92
