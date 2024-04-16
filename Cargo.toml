@@ -1,9 +1,12 @@
 [package]
-name = "sigstore_apis"
+name = "sigstore-apis"
 version = "0.1.0"
 edition = "2021"
+description = "Rust clients for the Fulcio and Rekor APIs"
+license = "Apache-2.0"
+homepage = "https://github.com/trailofbits/sigstore-apis"
+repository = "https://github.com/trailofbits/sigstore-apis"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 futures = "0.3"
 progenitor-client = "0.5"
@@ -20,3 +23,7 @@ serde_json = "1.0"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros"] }
+
+[package.metadata.release]
+publish = false # handled by GitHub Actions
+push = true
