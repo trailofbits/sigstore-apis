@@ -3,7 +3,7 @@ name = "sigstore-apis"
 version = "0.1.0"
 edition = "2021"
 description = "Rust clients for the Fulcio and Rekor APIs"
-license = "Apache 2.0"
+license = "Apache-2.0"
 homepage = "https://github.com/trailofbits/sigstore-apis"
 repository = "https://github.com/trailofbits/sigstore-apis"
 
