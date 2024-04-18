@@ -4,8 +4,8 @@
 .PHONY: all
 all: fulcio.openapi.json rekor.openapi.json
 
-fulcio.openapi.json: versions
+fulcio.openapi.json: versions update.sh
 	./update.sh
 
-rekor.openapi.json: versions
+rekor.openapi.json: versions update.sh
 	./update.sh

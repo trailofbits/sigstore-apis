@@ -44,6 +44,12 @@ transform_schema() {
             # Delete enumerated error code cases per above.
             elif .key | test("^4\\d\\d$") then
                 empty
+            # LogEntry.body is incorrectly marked as an object in the current
+            # schema; adjust to a string. Technically the same condition as
+            # below, but separate for easy removal when fixed upstream.
+            # https://github.com/sigstore/rekor/pull/2091
+            elif .key == "body" and .value.type? == "object" then
+                .value = {"type": "string"}
             # Convert base64-encoded objects to bare strings, as the former
             # is not technically in the OpenAPI spec.
             # https://spec.openapis.org/registry/format/byte.html
