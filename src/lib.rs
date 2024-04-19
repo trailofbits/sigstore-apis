@@ -18,6 +18,10 @@ pub mod types {
     use crate::rekor::types as rekor;
     use serde::{Deserialize, Serialize};
 
+    // NOTE: This should really use `serde(tag = "spec")`, but the current
+    // Rekor OpenAPI definitions don't enable this pattern -- they place
+    // each `spec` on its variant, and we have no way to inject
+    // `serde(flatten)` on each `spec` attribute to surface it here.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(untagged, rename_all = "lowercase")]
     pub enum ProposedEntry {
