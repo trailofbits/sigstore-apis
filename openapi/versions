@@ -1,8 +1,8 @@
 FULCIO_REF=v1.4.3
-REKOR_REF=v1.3.5
+REKOR_REF=ww/fix-id
 
 FULCIO_REPO="https://github.com/sigstore/fulcio.git"
-REKOR_REPO="https://github.com/sigstore/rekor.git"
+REKOR_REPO="https://github.com/trail-of-forks/rekor.git"
 
 FULCIO_PATH="fulcio.swagger.json"
 REKOR_PATH="openapi.yaml"
