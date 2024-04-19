@@ -513,7 +513,14 @@
           "type": "object",
           "properties": {
             "attestation": {
-              "type": "string"
+              "type": "object",
+              "properties": {
+                "data": {
+                  "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
             },
             "body": {
               "type": "string"
@@ -717,7 +724,7 @@
             "type": "string"
           },
           "spec": {
-            "$ref": "#/components/schemas/RPMSchema"
+            "$ref": "#/components/schemas/COSESchema"
           }
         },
         "description": "COSE object",
@@ -909,7 +916,7 @@
             "type": "string"
           },
           "spec": {
-            "$ref": "#/components/schemas/RPMSchema"
+            "$ref": "#/components/schemas/TUFSchema"
           }
         },
         "description": "RPM package",
@@ -940,6 +947,61 @@
         "discriminator": {
           "propertyName": "kind"
         }
+      },
+      "TUFSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "http://rekor.sigstore.dev/types/tuf/tuf_schema.json",
+        "title": "TUF Schema",
+        "description": "Schema for TUF metadata objects",
+        "type": "object",
+        "oneOf": [
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/tuf/tuf_v0_0_1_schema.json",
+            "title": "TUF v0.0.1 Schema",
+            "description": "Schema for TUF metadata entries",
+            "type": "object",
+            "properties": {
+              "spec_version": {
+                "description": "TUF specification version",
+                "type": "string",
+                "readOnly": true
+              },
+              "metadata": {
+                "description": "TUF metadata",
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "description": "Specifies the metadata inline within the document",
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              },
+              "root": {
+                "description": "root metadata containing about the public keys used to sign the manifest",
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "description": "Specifies the metadata inline within the document",
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            },
+            "required": [
+              "metadata",
+              "root"
+            ]
+          }
+        ]
       },
       "RPMSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -1026,506 +1088,6 @@
             "required": [
               "publicKey",
               "package"
-            ]
-          }
-        ]
-      },
-      "COSESchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/cose/cose_schema.json",
-        "title": "COSE Schema",
-        "description": "COSE for Rekord objects",
-        "type": "object",
-        "oneOf": [
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/cose/cose_v0_0_1_schema.json",
-            "title": "cose v0.0.1 Schema",
-            "description": "Schema for cose object",
-            "type": "object",
-            "properties": {
-              "message": {
-                "description": "The COSE Sign1 Message",
-                "type": "string",
-                "format": "byte",
-                "writeOnly": true
-              },
-              "publicKey": {
-                "description": "The public key that can verify the signature",
-                "type": "string",
-                "format": "byte"
-              },
-              "data": {
-                "description": "Information about the content associated with the entry",
-                "type": "object",
-                "properties": {
-                  "payloadHash": {
-                    "description": "Specifies the hash algorithm and value for the content",
-                    "type": "object",
-                    "readOnly": true,
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value for the content",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ]
-                  },
-                  "envelopeHash": {
-                    "description": "Specifies the hash algorithm and value for the COSE envelope",
-                    "type": "object",
-                    "readOnly": true,
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value for the envelope",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ]
-                  },
-                  "aad": {
-                    "description": "Specifies the additional authenticated data required to verify the signature",
-                    "type": "string",
-                    "format": "byte",
-                    "writeOnly": true
-                  }
-                },
-                "required": []
-              }
-            },
-            "required": [
-              "publicKey"
-            ]
-          }
-        ]
-      },
-      "IntotoSchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/intoto/intoto_schema.json",
-        "title": "Intoto Schema",
-        "description": "Intoto for Rekord objects",
-        "type": "object",
-        "oneOf": [
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/intoto/intoto_v0_0_1_schema.json",
-            "title": "intoto v0.0.1 Schema",
-            "description": "Schema for intoto object",
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "properties": {
-                  "envelope": {
-                    "description": "envelope",
-                    "type": "string",
-                    "writeOnly": true
-                  },
-                  "hash": {
-                    "description": "Specifies the hash algorithm and value encompassing the entire signed envelope; this is computed by the rekor server, client-provided values are ignored",
-                    "type": "object",
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value for the archive",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ],
-                    "readOnly": true
-                  },
-                  "payloadHash": {
-                    "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope; this is computed by the rekor server, client-provided values are ignored",
-                    "type": "object",
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value for the envelope's payload",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ],
-                    "readOnly": true
-                  }
-                }
-              },
-              "publicKey": {
-                "description": "The public key that can verify the signature",
-                "type": "string",
-                "format": "byte"
-              }
-            },
-            "required": [
-              "publicKey",
-              "content"
-            ]
-          },
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/intoto/intoto_v0_0_2_schema.json",
-            "title": "intoto v0.0.2 Schema",
-            "description": "Schema for intoto object",
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "properties": {
-                  "envelope": {
-                    "description": "dsse envelope",
-                    "type": "object",
-                    "properties": {
-                      "payload": {
-                        "description": "payload of the envelope",
-                        "type": "string",
-                        "format": "byte",
-                        "writeOnly": true
-                      },
-                      "payloadType": {
-                        "description": "type describing the payload",
-                        "type": "string"
-                      },
-                      "signatures": {
-                        "description": "collection of all signatures of the envelope's payload",
-                        "type": "array",
-                        "minItems": 1,
-                        "items": {
-                          "description": "a signature of the envelope's payload along with the public key for the signature",
-                          "type": "object",
-                          "properties": {
-                            "keyid": {
-                              "description": "optional id of the key used to create the signature",
-                              "type": "string"
-                            },
-                            "sig": {
-                              "description": "signature of the payload",
-                              "type": "string",
-                              "format": "byte"
-                            },
-                            "publicKey": {
-                              "description": "public key that corresponds to this signature",
-                              "type": "string",
-                              "format": "byte"
-                            }
-                          },
-                          "required": [
-                            "sig",
-                            "publicKey"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "payloadType",
-                      "signatures"
-                    ]
-                  },
-                  "hash": {
-                    "description": "Specifies the hash algorithm and value encompassing the entire signed envelope",
-                    "type": "object",
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value for the archive",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ],
-                    "readOnly": true
-                  },
-                  "payloadHash": {
-                    "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope",
-                    "type": "object",
-                    "properties": {
-                      "algorithm": {
-                        "description": "The hashing function used to compute the hash value",
-                        "type": "string",
-                        "enum": [
-                          "sha256"
-                        ]
-                      },
-                      "value": {
-                        "description": "The hash value of the payload",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "algorithm",
-                      "value"
-                    ],
-                    "readOnly": true
-                  }
-                },
-                "required": [
-                  "envelope"
-                ]
-              }
-            },
-            "required": [
-              "content"
-            ]
-          }
-        ]
-      },
-      "DSSESchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/dsse/dsse_schema.json",
-        "title": "DSSE Schema",
-        "description": "log entry schema for dsse envelopes",
-        "type": "object",
-        "oneOf": [
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/dsse/dsse_v0_0_1_schema.json",
-            "title": "DSSE v0.0.1 Schema",
-            "description": "Schema for DSSE envelopes",
-            "type": "object",
-            "properties": {
-              "proposedContent": {
-                "type": "object",
-                "properties": {
-                  "envelope": {
-                    "description": "DSSE envelope specified as a stringified JSON object",
-                    "type": "string",
-                    "writeOnly": true
-                  },
-                  "verifiers": {
-                    "description": "collection of all verification material (e.g. public keys or certificates) used to verify signatures over envelope's payload, specified as base64-encoded strings",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                      "type": "string",
-                      "format": "byte"
-                    },
-                    "writeOnly": true
-                  }
-                },
-                "writeOnly": true,
-                "required": [
-                  "envelope",
-                  "verifiers"
-                ]
-              },
-              "signatures": {
-                "description": "extracted collection of all signatures of the envelope's payload; elements will be sorted by lexicographical order of the base64 encoded signature strings",
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "description": "a signature of the envelope's payload along with the verification material for the signature",
-                  "type": "object",
-                  "properties": {
-                    "signature": {
-                      "description": "base64 encoded signature of the payload",
-                      "type": "string",
-                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$"
-                    },
-                    "verifier": {
-                      "description": "verification material that was used to verify the corresponding signature, specified as a base64 encoded string",
-                      "type": "string",
-                      "format": "byte"
-                    }
-                  },
-                  "required": [
-                    "signature",
-                    "verifier"
-                  ]
-                },
-                "readOnly": true
-              },
-              "envelopeHash": {
-                "description": "Specifies the hash algorithm and value encompassing the entire envelope sent to Rekor",
-                "type": "object",
-                "properties": {
-                  "algorithm": {
-                    "description": "The hashing function used to compute the hash value",
-                    "type": "string",
-                    "enum": [
-                      "sha256"
-                    ]
-                  },
-                  "value": {
-                    "description": "The value of the computed digest over the entire envelope",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "algorithm",
-                  "value"
-                ],
-                "readOnly": true
-              },
-              "payloadHash": {
-                "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope",
-                "type": "object",
-                "properties": {
-                  "algorithm": {
-                    "description": "The hashing function used to compute the hash value",
-                    "type": "string",
-                    "enum": [
-                      "sha256"
-                    ]
-                  },
-                  "value": {
-                    "description": "The value of the computed digest over the payload within the envelope",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "algorithm",
-                  "value"
-                ],
-                "readOnly": true
-              }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "proposedContent"
-                ]
-              },
-              {
-                "required": [
-                  "signatures",
-                  "envelopeHash",
-                  "payloadHash"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "TUFSchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/tuf/tuf_schema.json",
-        "title": "TUF Schema",
-        "description": "Schema for TUF metadata objects",
-        "type": "object",
-        "oneOf": [
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/tuf/tuf_v0_0_1_schema.json",
-            "title": "TUF v0.0.1 Schema",
-            "description": "Schema for TUF metadata entries",
-            "type": "object",
-            "properties": {
-              "spec_version": {
-                "description": "TUF specification version",
-                "type": "string",
-                "readOnly": true
-              },
-              "metadata": {
-                "description": "TUF metadata",
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "description": "Specifies the metadata inline within the document",
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              },
-              "root": {
-                "description": "root metadata containing about the public keys used to sign the manifest",
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "description": "Specifies the metadata inline within the document",
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              }
-            },
-            "required": [
-              "metadata",
-              "root"
-            ]
-          }
-        ]
-      },
-      "TimestampSchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/rfc3161/rfc3161_schema.json",
-        "title": "Timestamp Schema",
-        "description": "Schema for RFC 3161 timestamp objects",
-        "type": "object",
-        "oneOf": [
-          {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/timestamp/timestamp_v0_0_1_schema.json",
-            "title": "Timestamp v0.0.1 Schema",
-            "description": "Schema for RFC3161 entries",
-            "type": "object",
-            "properties": {
-              "tsr": {
-                "description": "Information about the tsr file associated with the entry",
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "description": "Specifies the tsr file content inline within the document",
-                    "type": "string",
-                    "format": "byte"
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              }
-            },
-            "required": [
-              "tsr"
             ]
           }
         ]
@@ -1745,26 +1307,26 @@
           }
         ]
       },
-      "AlpinePackageSchema": {
+      "TimestampSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "$id": "http://rekor.sigstore.dev/types/alpine/alpine_schema.json",
-        "title": "Alpine Package Schema",
-        "description": "Schema for Alpine package objects",
+        "$id": "http://rekor.sigstore.dev/types/rfc3161/rfc3161_schema.json",
+        "title": "Timestamp Schema",
+        "description": "Schema for RFC 3161 timestamp objects",
         "type": "object",
         "oneOf": [
           {
             "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://rekor.sigstore.dev/types/alpine/alpine_v0_0_1_schema.json",
-            "title": "Alpine v0.0.1 Schema",
-            "description": "Schema for Alpine Package entries",
+            "$id": "http://rekor.sigstore.dev/types/timestamp/timestamp_v0_0_1_schema.json",
+            "title": "Timestamp v0.0.1 Schema",
+            "description": "Schema for RFC3161 entries",
             "type": "object",
             "properties": {
-              "publicKey": {
-                "description": "The public key that can verify the package signature",
+              "tsr": {
+                "description": "Information about the tsr file associated with the entry",
                 "type": "object",
                 "properties": {
                   "content": {
-                    "description": "Specifies the content of the public key inline within the document",
+                    "description": "Specifies the tsr file content inline within the document",
                     "type": "string",
                     "format": "byte"
                   }
@@ -1772,22 +1334,174 @@
                 "required": [
                   "content"
                 ]
-              },
-              "package": {
-                "description": "Information about the package associated with the entry",
+              }
+            },
+            "required": [
+              "tsr"
+            ]
+          }
+        ]
+      },
+      "DSSESchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "http://rekor.sigstore.dev/types/dsse/dsse_schema.json",
+        "title": "DSSE Schema",
+        "description": "log entry schema for dsse envelopes",
+        "type": "object",
+        "oneOf": [
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/dsse/dsse_v0_0_1_schema.json",
+            "title": "DSSE v0.0.1 Schema",
+            "description": "Schema for DSSE envelopes",
+            "type": "object",
+            "properties": {
+              "proposedContent": {
                 "type": "object",
                 "properties": {
-                  "pkginfo": {
-                    "description": "Values of the .PKGINFO key / value pairs",
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    },
-                    "readOnly": true
+                  "envelope": {
+                    "description": "DSSE envelope specified as a stringified JSON object",
+                    "type": "string",
+                    "writeOnly": true
                   },
-                  "hash": {
-                    "description": "Specifies the hash algorithm and value for the package",
+                  "verifiers": {
+                    "description": "collection of all verification material (e.g. public keys or certificates) used to verify signatures over envelope's payload, specified as base64-encoded strings",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string",
+                      "format": "byte"
+                    },
+                    "writeOnly": true
+                  }
+                },
+                "writeOnly": true,
+                "required": [
+                  "envelope",
+                  "verifiers"
+                ]
+              },
+              "signatures": {
+                "description": "extracted collection of all signatures of the envelope's payload; elements will be sorted by lexicographical order of the base64 encoded signature strings",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "description": "a signature of the envelope's payload along with the verification material for the signature",
+                  "type": "object",
+                  "properties": {
+                    "signature": {
+                      "description": "base64 encoded signature of the payload",
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$"
+                    },
+                    "verifier": {
+                      "description": "verification material that was used to verify the corresponding signature, specified as a base64 encoded string",
+                      "type": "string",
+                      "format": "byte"
+                    }
+                  },
+                  "required": [
+                    "signature",
+                    "verifier"
+                  ]
+                },
+                "readOnly": true
+              },
+              "envelopeHash": {
+                "description": "Specifies the hash algorithm and value encompassing the entire envelope sent to Rekor",
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "description": "The hashing function used to compute the hash value",
+                    "type": "string",
+                    "enum": [
+                      "sha256"
+                    ]
+                  },
+                  "value": {
+                    "description": "The value of the computed digest over the entire envelope",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "readOnly": true
+              },
+              "payloadHash": {
+                "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope",
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "description": "The hashing function used to compute the hash value",
+                    "type": "string",
+                    "enum": [
+                      "sha256"
+                    ]
+                  },
+                  "value": {
+                    "description": "The value of the computed digest over the payload within the envelope",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "readOnly": true
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "proposedContent"
+                ]
+              },
+              {
+                "required": [
+                  "signatures",
+                  "envelopeHash",
+                  "payloadHash"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "COSESchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "http://rekor.sigstore.dev/types/cose/cose_schema.json",
+        "title": "COSE Schema",
+        "description": "COSE for Rekord objects",
+        "type": "object",
+        "oneOf": [
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/cose/cose_v0_0_1_schema.json",
+            "title": "cose v0.0.1 Schema",
+            "description": "Schema for cose object",
+            "type": "object",
+            "properties": {
+              "message": {
+                "description": "The COSE Sign1 Message",
+                "type": "string",
+                "format": "byte",
+                "writeOnly": true
+              },
+              "publicKey": {
+                "description": "The public key that can verify the signature",
+                "type": "string",
+                "format": "byte"
+              },
+              "data": {
+                "description": "Information about the content associated with the entry",
+                "type": "object",
+                "properties": {
+                  "payloadHash": {
+                    "description": "Specifies the hash algorithm and value for the content",
                     "type": "object",
+                    "readOnly": true,
                     "properties": {
                       "algorithm": {
                         "description": "The hashing function used to compute the hash value",
@@ -1797,40 +1511,49 @@
                         ]
                       },
                       "value": {
-                        "description": "The hash value for the package",
+                        "description": "The hash value for the content",
                         "type": "string"
                       }
                     },
-                    "readOnly": true,
                     "required": [
                       "algorithm",
                       "value"
                     ]
                   },
-                  "content": {
-                    "description": "Specifies the package inline within the document",
+                  "envelopeHash": {
+                    "description": "Specifies the hash algorithm and value for the COSE envelope",
+                    "type": "object",
+                    "readOnly": true,
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value for the envelope",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ]
+                  },
+                  "aad": {
+                    "description": "Specifies the additional authenticated data required to verify the signature",
                     "type": "string",
                     "format": "byte",
                     "writeOnly": true
                   }
                 },
-                "oneOf": [
-                  {
-                    "required": [
-                      "hash"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "content"
-                    ]
-                  }
-                ]
+                "required": []
               }
             },
             "required": [
-              "publicKey",
-              "package"
+              "publicKey"
             ]
           }
         ]
@@ -1928,6 +1651,290 @@
             },
             "required": [
               "archive"
+            ]
+          }
+        ]
+      },
+      "AlpinePackageSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "http://rekor.sigstore.dev/types/alpine/alpine_schema.json",
+        "title": "Alpine Package Schema",
+        "description": "Schema for Alpine package objects",
+        "type": "object",
+        "oneOf": [
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/alpine/alpine_v0_0_1_schema.json",
+            "title": "Alpine v0.0.1 Schema",
+            "description": "Schema for Alpine Package entries",
+            "type": "object",
+            "properties": {
+              "publicKey": {
+                "description": "The public key that can verify the package signature",
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "description": "Specifies the content of the public key inline within the document",
+                    "type": "string",
+                    "format": "byte"
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              },
+              "package": {
+                "description": "Information about the package associated with the entry",
+                "type": "object",
+                "properties": {
+                  "pkginfo": {
+                    "description": "Values of the .PKGINFO key / value pairs",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "readOnly": true
+                  },
+                  "hash": {
+                    "description": "Specifies the hash algorithm and value for the package",
+                    "type": "object",
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value for the package",
+                        "type": "string"
+                      }
+                    },
+                    "readOnly": true,
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ]
+                  },
+                  "content": {
+                    "description": "Specifies the package inline within the document",
+                    "type": "string",
+                    "format": "byte",
+                    "writeOnly": true
+                  }
+                },
+                "oneOf": [
+                  {
+                    "required": [
+                      "hash"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "content"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "publicKey",
+              "package"
+            ]
+          }
+        ]
+      },
+      "IntotoSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "http://rekor.sigstore.dev/types/intoto/intoto_schema.json",
+        "title": "Intoto Schema",
+        "description": "Intoto for Rekord objects",
+        "type": "object",
+        "oneOf": [
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/intoto/intoto_v0_0_1_schema.json",
+            "title": "intoto v0.0.1 Schema",
+            "description": "Schema for intoto object",
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "properties": {
+                  "envelope": {
+                    "description": "envelope",
+                    "type": "string",
+                    "writeOnly": true
+                  },
+                  "hash": {
+                    "description": "Specifies the hash algorithm and value encompassing the entire signed envelope; this is computed by the rekor server, client-provided values are ignored",
+                    "type": "object",
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value for the archive",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "readOnly": true
+                  },
+                  "payloadHash": {
+                    "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope; this is computed by the rekor server, client-provided values are ignored",
+                    "type": "object",
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value for the envelope's payload",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "readOnly": true
+                  }
+                }
+              },
+              "publicKey": {
+                "description": "The public key that can verify the signature",
+                "type": "string",
+                "format": "byte"
+              }
+            },
+            "required": [
+              "publicKey",
+              "content"
+            ]
+          },
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "$id": "http://rekor.sigstore.dev/types/intoto/intoto_v0_0_2_schema.json",
+            "title": "intoto v0.0.2 Schema",
+            "description": "Schema for intoto object",
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "properties": {
+                  "envelope": {
+                    "description": "dsse envelope",
+                    "type": "object",
+                    "properties": {
+                      "payload": {
+                        "description": "payload of the envelope",
+                        "type": "string",
+                        "format": "byte",
+                        "writeOnly": true
+                      },
+                      "payloadType": {
+                        "description": "type describing the payload",
+                        "type": "string"
+                      },
+                      "signatures": {
+                        "description": "collection of all signatures of the envelope's payload",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "description": "a signature of the envelope's payload along with the public key for the signature",
+                          "type": "object",
+                          "properties": {
+                            "keyid": {
+                              "description": "optional id of the key used to create the signature",
+                              "type": "string"
+                            },
+                            "sig": {
+                              "description": "signature of the payload",
+                              "type": "string",
+                              "format": "byte"
+                            },
+                            "publicKey": {
+                              "description": "public key that corresponds to this signature",
+                              "type": "string",
+                              "format": "byte"
+                            }
+                          },
+                          "required": [
+                            "sig",
+                            "publicKey"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "payloadType",
+                      "signatures"
+                    ]
+                  },
+                  "hash": {
+                    "description": "Specifies the hash algorithm and value encompassing the entire signed envelope",
+                    "type": "object",
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value for the archive",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "readOnly": true
+                  },
+                  "payloadHash": {
+                    "description": "Specifies the hash algorithm and value covering the payload within the DSSE envelope",
+                    "type": "object",
+                    "properties": {
+                      "algorithm": {
+                        "description": "The hashing function used to compute the hash value",
+                        "type": "string",
+                        "enum": [
+                          "sha256"
+                        ]
+                      },
+                      "value": {
+                        "description": "The hash value of the payload",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "readOnly": true
+                  }
+                },
+                "required": [
+                  "envelope"
+                ]
+              }
+            },
+            "required": [
+              "content"
             ]
           }
         ]

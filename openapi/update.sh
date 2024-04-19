@@ -50,11 +50,9 @@ transform_schema() {
             # https://github.com/sigstore/rekor/pull/2091
             elif .key == "body" and .value.type? == "object" then
                 .value = {"type": "string"}
-            # Convert base64-encoded objects to bare strings, as the former
-            # is not technically in the OpenAPI spec.
-            # https://spec.openapis.org/registry/format/byte.html
+            # Fix missing inner type on LogEntry.attestation.data.
             elif .key == "attestation" and .value.type? == "object" then
-                .value = {"type": "string"}
+                .value = {"type": "object", "properties": { "data": {"type": "string", "format": "byte"}}}
             # Change the catch-all error case to a more generic type now that
             # we are deleting the individual error cases.
             elif try(.value.default."$ref" != null) catch false then

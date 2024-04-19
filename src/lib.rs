@@ -81,11 +81,11 @@ mod tests {
         let query = SearchLogQuery {
             entries: vec![],
             entry_uui_ds: vec![],
-            log_indexes: vec![0, 1, 2],
+            log_indexes: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         };
 
         let response = client.search_log_query(&query).await;
         assert!(response.is_ok(), "{:?}", response.unwrap_err());
-        assert_eq!(response.unwrap().len(), 3);
+        assert_eq!(response.unwrap().len(), 10);
     }
 }
