@@ -1,5 +1,8 @@
 FULCIO_REF=v1.4.3
-REKOR_REF=v1.3.5
+
+# NOTE: this commit ref is after v1.3.6, and includes
+# https://github.com/sigstore/rekor/pull/2092.
+REKOR_REF=7b91974f8377f3b9027af22aa98875126239c4ec
 
 FULCIO_REPO="https://github.com/sigstore/fulcio.git"
 REKOR_REPO="https://github.com/sigstore/rekor.git"

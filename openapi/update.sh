@@ -44,11 +44,15 @@ transform_schema() {
             # Delete enumerated error code cases per above.
             elif .key | test("^4\\d\\d$") then
                 empty
-            # Convert base64-encoded objects to bare strings, as the former
-            # is not technically in the OpenAPI spec.
-            # https://spec.openapis.org/registry/format/byte.html
-            elif .key == "attestation" and .value.type? == "object" then
+            # LogEntry.body is incorrectly marked as an object in the current
+            # schema; adjust to a string. Technically the same condition as
+            # below, but separate for easy removal when fixed upstream.
+            # https://github.com/sigstore/rekor/pull/2091
+            elif .key == "body" and .value.type? == "object" then
                 .value = {"type": "string"}
+            # Fix missing inner type on LogEntry.attestation.data.
+            elif .key == "attestation" and .value.type? == "object" then
+                .value = {"type": "object", "properties": { "data": {"type": "string", "format": "byte"}}}
             # Change the catch-all error case to a more generic type now that
             # we are deleting the individual error cases.
             elif try(.value.default."$ref" != null) catch false then
@@ -73,12 +77,13 @@ convert_openapi() {
 
 # Download and transform the specs.
 download_spec() {
-    git clone --depth 1 -b "$3" "$2" "$1" 2>/dev/null
+    git clone "$2" "$1" 2>/dev/null
     pushd "$1" >/dev/null
+    git checkout "${3}"
 
     # XX: This ordering is important! The swagger converter service can't handle
     # the raw schema since it contains references.
-    transform_schema "$4" > "work.json"
+    transform_schema "${4}" > "work.json"
     cp "work.json" ~/Documents/sw/sigstore-apis/
 
     # XX: This technically shouldn't work: schema-tools is designed for OpenAPI 3.0.
