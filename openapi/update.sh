@@ -77,12 +77,13 @@ convert_openapi() {
 
 # Download and transform the specs.
 download_spec() {
-    git clone --depth 1 -b "$3" "$2" "$1" 2>/dev/null
+    git clone "$2" "$1" 2>/dev/null
     pushd "$1" >/dev/null
+    git checkout "${3}"
 
     # XX: This ordering is important! The swagger converter service can't handle
     # the raw schema since it contains references.
-    transform_schema "$4" > "work.json"
+    transform_schema "${4}" > "work.json"
     cp "work.json" ~/Documents/sw/sigstore-apis/
 
     # XX: This technically shouldn't work: schema-tools is designed for OpenAPI 3.0.
