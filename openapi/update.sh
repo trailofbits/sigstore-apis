@@ -114,7 +114,7 @@ download_spec() {
         # fixup references
         (.. | ."$ref"? | select(type == "string")) |=
         if endswith("_tmp") then
-            "#/components/schemas/\($renames[sub(".*(?<a>[0-9]+_tmp)$"; "\(.a)")])"
+            "#/components/schemas/\($renames[sub(".*/(?<a>[0-9]+_tmp)$"; "\(.a)")])"
         else
             .
         end' |
